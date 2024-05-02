@@ -29,8 +29,6 @@ const http = require('http')
  */
 
 const port = normalizePort(process.env.PORT || '5000')
-console.log(process.env.PORT)
-console.log(port)
 
 app.set('port', port)
 
@@ -44,7 +42,7 @@ const server = http.createServer(app)
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port, () => console.log(`Server Listening on port ${port}`))
+server.listen(port, () => console.log(`Server Listening on port ${port} ISMAIL`))
 server.on('error', onError)
 server.on('listening', onListening)
 
@@ -102,16 +100,17 @@ function onError(error) {
 function onListening() {
   var addr = server.address()
   var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
-  mongoose
-  .connect(process.env.DB_URL)
-  .then((result) => {
-    app.listen(port)
-    console.log(`Listening on port 3000`)
-  })
-  .catch((err) => console.log(err))
-
   debug('Listening on ' + bind)
 }
+
+const mongoDB = process.env.MONGODB_URL
+mongoose
+.connect(process.env.DB_URL)
+.then(() => {
+  app.listen(mongoDB)
+  console.log(`Connectd to MongoDB..`)
+})
+.catch((err) => console.log(err))
 
 
 // database connection
