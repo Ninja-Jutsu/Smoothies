@@ -14,14 +14,6 @@ app.use(cookieParser()) // use the cookie parser middleware up here
 // view engine
 app.set('view engine', 'ejs')
 
-// database connection
-mongoose
-  .connect(process.env.DB_URL)
-  .then((result) => {
-    app.listen(3000)
-    console.log(`Listening on port 3000`)
-  })
-  .catch((err) => console.log(err))
 
 // routes
 app.get('*', checkUser) // this will fire for all get request, either give you null or the user
@@ -29,19 +21,97 @@ app.get('/', (req, res) => res.render('home'))
 app.get('/smoothies', requireAuth, (req, res) => res.render('smoothies'))
 app.use(authRoutes) // 2- use them here
 
-// Cookies (keep for reference)
-// app.get('/set-cookies', (req, res) => {
-//   // res.setHeader('Set-Cookie', 'newUser=true') // instead of this
-//   res.cookie('newUser', false, {maxAge : 1000 * 60 * 60 * 24}) // use this (cookie-parser package) a day long,
-//   res.cookie('isEmployed', true)
-//   res.send('you got the cookies')
-// })
+const debug = require('debug')('Smoothies:server')
+const http = require('http')
 
-// app.get('/read-cookies', (req, res) => {
-//   const cookies = req.cookies // thanks to cookies parser now we can access cookies anywhere
-//   console.log(cookies.newUser)
-//   res.json(cookies)
-// })
+/**
+ * Get port from environment and store in Express.
+ */
 
-// // secure: can only be sent over an HTTPS req
-// // httpOnly : can't be access by JS using document.cookie
+const port = normalizePort(process.env.PORT || '5000')
+console.log(process.env.PORT)
+console.log(port)
+
+app.set('port', port)
+
+/**
+ * Create HTTP server.
+ */
+
+const server = http.createServer(app)
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port, () => console.log(`Server Listening on port ${port}`))
+server.on('error', onError)
+server.on('listening', onListening)
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10)
+
+  if (isNaN(port)) {
+    // named pipe
+    return val
+  }
+
+  if (port >= 0) {
+    // port number
+    return port
+  }
+
+  return false
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  console.log(error.syscall)
+  if (error.syscall !== 'listen') {
+    throw error
+  }
+
+  var bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges')
+      process.exit(1)
+      break
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use')
+      process.exit(1)
+      break
+    default:
+      throw error
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address()
+  var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
+  mongoose
+  .connect(process.env.DB_URL)
+  .then((result) => {
+    app.listen(port)
+    console.log(`Listening on port 3000`)
+  })
+  .catch((err) => console.log(err))
+
+  debug('Listening on ' + bind)
+}
+
+
+// database connection
